@@ -9,14 +9,18 @@ class DeathLink(DefaultOnToggle):
     auto_display_name = True
     display_name = "DeathLink"
 
+class RandomAces(DefaultOnToggle):
+    """Randomize ACES:
+    """
+    auto_display_name = True
+    display_name = "Randomize Aces"
+
 class GameObjective(Choice):
     """Win Condition:
-    - Hunt Alatreon
-    - Hunt Amatsu
-    - Hunt Jhen Mohran
-    - Clear Alatreon Quest
-    - Clear Amatsu Urgent
-    - Clear Jhen Mohran Urgent
+    - Missionsanity: clear a number of missions
+    - story1: Clear 15A
+    - story2: Clear 15B
+    - Story Either: Clear either 15A or 15B
     """
     auto_display_name = True
     display_name = "Win Condition"
@@ -40,6 +44,14 @@ class StartingCredits(Range):
     range_end = 30000
     default = 2500
 
+class MinimumClearRank(Choice):
+    """Sets the minimum rank you need to check a mission location"""
+    display_name = "Min. Mission Rank"
+    option_C = 3
+    option_B = 2
+    option_A = 1
+    option_S = 0
+    default = 3
 
 
 @dataclass
@@ -48,11 +60,13 @@ class ACXOptions(PerGameCommonOptions):
     death_link: DeathLink
     
     # randomization options
+    randomize_aces: RandomAces
     required_missions: RequiredMissions
 
     # starting credits
     starting_credits: StartingCredits
     
-    # goal
+    # progression
+    min_rank: MinimumClearRank
     objective_to_win: GameObjective
 

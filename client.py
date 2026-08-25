@@ -2,7 +2,7 @@ from json import dumps as json_dump, loads as json_load
 from CommonClient import CommonContext, ClientCommandProcessor, gui_enabled, get_base_parser, server_loop, ClientStatus
 
 
-from .acx_if import ACX_Interface, AIRCRAFT_NAME_LIST, MISSION_NAME_LIST
+from .acx_if import ACX_Interface, AIRCRAFT_NAME_LIST, MISSION_NAME_LIST, ACE_NAMES
 from .locations import location_name_to_id, location_id_to_name
 from .items import item_id_to_name, ACXItem
 
@@ -112,8 +112,13 @@ async def game_watcher(ctx: ACXContext):
                     else:
                         local_checks: set[int] = set()
 
-                        mission_status: list[bool] = ctx.game_interface.check_missions()
+                        mission_status: list[bool] = ctx.game_interface.check_missions(ctx.slot_data["min_rank"])
                         aircraft_status: list[bool] = ctx.game_interface.check_purchased_aircraft()
+                        aces_status: list[bool] = ctx.game_interface.check_aces()
+                        for idx, done in enumerate(aces_status):
+                            if done:
+                                print(idx, done)
+                                local_checks.add(location_name_to_id[f'Defeat {ACE_NAMES[idx]}'])
                         for idx, done in enumerate(mission_status):
                             if done:
                                 # print(f'{idx}, {MISSION_NAME_LIST[idx]}, {location_name_to_id[MISSION_NAME_LIST[idx]]}')

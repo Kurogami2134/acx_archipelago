@@ -6,7 +6,7 @@ from typing import List
 
 from .rules import get_rule
 from .items import ACXItem, item_list, item_id_to_name, item_name_to_id, filler_items, item_table
-from .locations import ACXLocation, location_list, location_id_to_name, location_name_to_id
+from .locations import ACXLocation, normal_locations, aces_locations, location_list, location_id_to_name, location_name_to_id
 from .options import ACXOptions
 
 
@@ -56,16 +56,19 @@ class ACXWorld(World):
         
         pre_filled = len(self.multiworld.itempool)
         to_fill = len(self.get_region("Game").locations)
-        if (to_fill - pre_filled - 1) > 0:
-            print(f"Adding Filler {to_fill - pre_filled - 1}")
-            for _ in range(to_fill - pre_filled - 1):
+        if (to_fill - pre_filled) > 0:
+            print(f"Adding Filler {to_fill - pre_filled}")
+            for _ in range(to_fill - pre_filled):
                 self.multiworld.itempool.append(self.create_filler())
 
     def fill_slot_data(self) -> dict:
-        return {"death_link": self.options.death_link.value,
+        return {
+            "death_link": self.options.death_link.value,
             "required_missions": self.options.required_missions.value,
             "starting_credits": self.options.starting_credits.value,
-            "objective": self.options.objective_to_win.value}
+            "min_rank":self.options.min_rank.value,
+            "objective": self.options.objective_to_win.value
+        }
 
     def place_item(self, location_name: str, item_name: str) -> None:
         ...
@@ -95,7 +98,9 @@ class ACXWorld(World):
         
         locations: List[str] = []
         
-        locations.extend(location_list) 
+        locations.extend(normal_locations) 
+        if self.options.randomize_aces:
+            locations.extend(aces_locations)
 
         for loc in locations:
             location: ACXLocation = create_location(loc)

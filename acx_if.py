@@ -1,17 +1,17 @@
 from struct import pack, unpack
 from ModIO import PspRamIO
 
-CREDITS = 0x08A80E38
-AIR_CRAFT_STATUS = 0x08A80E46
-CHECK_HOOK = 0x08820E90
-MISSION_UNLOCK = 0x08A80F10
-MISSION_RANKINGS = 0x08A812F0
+CHECK_HOOK          = 0x08820E90
+DL_HOOK             = 0x088707FC
+CREDITS             = 0x08A80E38
+MISSION_UNLOCK      = 0x08A80F10
+AIR_CRAFT_STATUS    = 0x08A80E46
+MISSION_RANKINGS    = 0x08A812F0
+TIMER               = 0x08AA4968
+HEALTH_PTR          = 0x08A82ED8 # +0xB0
+IN_MISSION          = 0x08AA4964
 MISSION_NAMES       = 0x08F6A324
 AIRCRAFT_NAMES      = 0x08F67424
-HEALTH_PTR = 0x08A82ED8 # +0xB0
-DL_HOOK = 0x088707FC
-TIMER               = 0x08AA4968
-IN_MISSION = 0x08AA4964
 
 PATCH_1 = b'\x00\x0A\x01\x3C\x10\xE4\x21\x24\x02\x00\x29\x14\x00\x00\x00\x00\x04\x00\x03\x34\xA6\x83\x20\x0A\x24\x10\x43\x00'
 PATCH_2 = b'\x80\x08\x01\x3C\x60\x00\x21\x24\x01\x00\x0F\x34\x00\x00\x2F\xA0\x1C\x02\x42\x8C\x01\xC2\x21\x0A\x80\x00\x42\x30'
@@ -92,7 +92,49 @@ MISSION_NAME_LIST: list[str] = [
     "14B - Offline",
 ]
 
-# 088707E4 puedo poner un breakpoint ahí para saber cuando morí
+ACE_NAMES: list[str] = [
+    "NULL",
+    'ZEPHYR',
+    'PAIN',
+    'SAVANNA',
+    'TYRANT',
+    'ICE',
+    'BIEL',
+    'INFERNO',
+    'BECRUX',
+    'ORCA',
+    'SABER',
+    'MANTA',
+    'RAGE',
+    'STORM',
+    'GHOST',
+    'ACRUX',
+    'SORROW',
+    'DUSK',
+    'PALADIN',
+    'FROST',
+    'ROSE',
+    'LANCER',
+    'FURY',
+    'SHIVA',
+    "NULL",
+    "NULL",
+    "NULL",
+    "NULL",
+    "NULL",
+    "NULL",
+    "NULL",
+    'RIOT',
+    'GACRUX',
+    'COMET',
+    'VIPER',
+    'SPIDER',
+    'FIRESTORM',
+    'ARI',
+    'GARUDA',
+    'ELIZA',
+]
+
 
 def unlock_purchases(ram) -> None:
     ram.seek(AIR_CRAFT_STATUS)
@@ -174,6 +216,18 @@ class ACX_Interface:
             return [False] * 0x28
         self.ram.seek(AIR_CRAFT_STATUS)
         return [(unpack("H", self.ram.read(0x2))[0] & 2) > 0 for _ in range(0x28)]
+
+    def check_aces(self) -> list[bool]:
+        if self.ram is None:
+            return [False] * 0x28
+        self.ram.seek(AIR_CRAFT_STATUS)
+        return [(unpack("H", self.ram.read(0x2))[0] & 0x20) > 0 for _ in range(0x28)]
+
+    def check_leseath_colors(self) -> list[bool]:
+        if self.ram is None:
+            return [False] * 0x28
+        self.ram.seek(AIR_CRAFT_STATUS)
+        return [(unpack("H", self.ram.read(0x2))[0] & 0x10) > 0 for _ in range(0x28)]
 
     def in_mission(self) -> bool:
         if self.ram is None:
