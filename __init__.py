@@ -51,15 +51,18 @@ class ACXWorld(World):
         return self.random.choice(filler_items)
     
     def create_items(self) -> None:
+        itempool: list[ACXItem] = []
         for item_name in item_list:
-            self.multiworld.itempool.append(self.create_item(item_name, item_table[item_name].item_type))
+            itempool.append(self.create_item(item_name, item_table[item_name].item_type))
         
-        pre_filled = len(self.multiworld.itempool)
+        pre_filled = len(itempool)
         to_fill = len(self.get_region("Game").locations)
         if (to_fill - pre_filled) > 0:
             print(f"Adding Filler {to_fill - pre_filled}")
             for _ in range(to_fill - pre_filled):
-                self.multiworld.itempool.append(self.create_filler())
+                itempool.append(self.create_filler())
+
+        self.multiworld.extend(itempool)
 
     def fill_slot_data(self) -> dict:
         return {

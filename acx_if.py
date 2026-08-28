@@ -1,5 +1,6 @@
 from struct import pack, unpack
-from ModIO import PspRamIO
+from .game_controller import PspRamIO
+
 
 CHECK_HOOK          = 0x08820E90
 DL_HOOK             = 0x088707FC
