@@ -29,8 +29,7 @@ class ACXContext(CommonContext):
     watcher_task: asyncio.Task | None = None
     #event_receiver_task: asyncio.Task | None = None
     #update_task: asyncio.Task | None = None
-
-    already_dead = False
+    
     dying = False
     just_got_dld = False
     locations_checked: set[int] = set()
@@ -55,7 +54,7 @@ class ACXContext(CommonContext):
         else:
             print(f'Invalid Location: {name}.')
 
-    def give_item(self, item: ACXItem) -> None:
+    def give_item(self, item: ACXItem, index: int) -> None:
         print(item)
         if self.game_interface is None:
             return
@@ -63,7 +62,7 @@ class ACXContext(CommonContext):
             print("Sending")
             self.game_interface.unlock_mission_by_name(item_id_to_name[item.item])
         elif "Credits" in item_id_to_name[item.item]: #  Credits
-            self.game_interface.give_credits(int(item_id_to_name[item.item].split(" ")[0]))
+            self.game_interface.give_credits(int(item_id_to_name[item.item].split(" ")[0]), idx=index)
         else: #  Aircraft
             self.game_interface.unlock_aircraft_by_name(item_id_to_name[item.item])
     
@@ -74,19 +73,19 @@ class ACXContext(CommonContext):
                 if self.game_interface is not None and self.game_interface.get_credits() == 0:
                     self.game_interface.give_credits(self.slot_data["starting_credits"])
             case "ReceivedItems":
-                print(args)
+                #print(args)
                 for item in args['items']:
-                    print(f'{item_id_to_name[item.item]} from {location_id_to_name[item.location] if item.location in location_id_to_name else "idk"}')
-                    self.give_item(item)
-        if "tags" not in args:
-            return
-        if "DeathLink" in args["tags"] and not self.already_dead:
-            self.dying = True
+                    # print(f'{item_id_to_name[item.item]} from {location_id_to_name[item.location] if item.location in location_id_to_name else "idk"}')
+                    self.give_item(item, args['index'])
+            case "Bounced":
+                if "tags" in args:
+                    if "DeathLink" in args["tags"] and args["data"]["source"] != self.username:
+                        self.dying = True
 
 async def game_watcher(ctx: ACXContext):
     while not ctx.exit_event.is_set():
 
-        print("GAME")
+        # print("GAME")
 
         if not (ctx.game_interface is None or ctx.game_interface.ram is None):
 
@@ -101,14 +100,15 @@ async def game_watcher(ctx: ACXContext):
                     if should_send_dl and ctx.just_got_dld:
                         ctx.just_got_dld = False
                     elif should_send_dl:
-                        ctx.send_death()
+                        await ctx.send_death()
                     
                     if is_in_mission:
                         if ctx.dying:
                             ctx.game_interface.kill()
                             ctx.dying = False
+                            ctx.just_got_dld = True
                             print("DEATHLINKINGPUM")
-                        print("IN")
+                        # print("IN")
                     else:
                         local_checks: set[int] = set()
 
@@ -117,7 +117,7 @@ async def game_watcher(ctx: ACXContext):
                         aces_status: list[bool] = ctx.game_interface.check_aces()
                         for idx, done in enumerate(aces_status):
                             if done:
-                                print(idx, done)
+                                # print(idx, done)
                                 local_checks.add(location_name_to_id[f'Defeat {ACE_NAMES[idx]}'])
                         for idx, done in enumerate(mission_status):
                             if done:
@@ -151,7 +151,7 @@ async def game_watcher(ctx: ACXContext):
                             await ctx.send_msgs([{"cmd": "StatusUpdate", "status": ClientStatus.CLIENT_GOAL}])
                             ctx.finished_game = True
                 except:
-                    ...
+                    print("Oops")
         await asyncio.sleep(0.1)
 
 async def connect_psp(ctx: ACXContext) -> None:

@@ -89,7 +89,7 @@ location_list: List[str] = [
     # defeat aces
     "Defeat MANTA",
     "Defeat ARI",
-    "Defeat Saber",
+    "Defeat SABER",
     "Defeat SHIVA",
     "Defeat ROSE",
     "Defeat SAVANNA",
@@ -200,7 +200,7 @@ aces_locations: list[str] = [
     # defeat aces
     "Defeat MANTA",
     "Defeat ARI",
-    "Defeat Saber",
+    "Defeat SABER",
     "Defeat SHIVA",
     "Defeat ROSE",
     "Defeat SAVANNA",

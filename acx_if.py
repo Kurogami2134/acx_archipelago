@@ -5,6 +5,7 @@ from .game_controller import PspRamIO
 CHECK_HOOK          = 0x08820E90
 DL_HOOK             = 0x088707FC
 CREDITS             = 0x08A80E38
+LAST_CREDITS_IDX    = 0x08A80E2F
 MISSION_UNLOCK      = 0x08A80F10
 AIR_CRAFT_STATUS    = 0x08A80E46
 MISSION_RANKINGS    = 0x08A812F0
@@ -172,13 +173,21 @@ class ACX_Interface:
         apply_patch(self.ram, 0x8800030, PATCH_2)
         create_jump(self.ram, DL_HOOK, 0x8800030, 1)
 
-    def give_credits(self, amount: int = 0) -> None:
+    def give_credits(self, amount: int = 0, idx: int = -1) -> None:
         if self.ram is None:
             return
+        if idx >= 0:
+            self.ram.seek(LAST_CREDITS_IDX)
+            last_credit_idx = unpack("B", self.ram.read(1))[0]
+            if idx <= last_credit_idx:
+                return
         self.ram.seek(CREDITS)
         current: int = unpack("i", self.ram.read(4))[0]
         self.ram.seek(CREDITS)
         self.ram.write(pack("i", current + amount))
+        if idx >= 0:
+            self.ram.seek(LAST_CREDITS_IDX)
+            self.ram.write(pack("B", idx))
     
     def get_credits(self) -> int:
         if self.ram is None:
